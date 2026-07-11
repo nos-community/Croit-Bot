@@ -1,0 +1,41 @@
+{
+  "name": "croit-bot",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Discord bot for the Nostalgia community",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nos-community/Croit-Bot.git"
+  },
+  "keywords": [
+    "discord",
+    "discord-bot",
+    "nostalgia"
+  ],
+  "author": "",
+  "bugs": {
+    "url": "https://github.com/nos-community/Croit-Bot/issues"
+  },
+  "homepage": "https://github.com/nos-community/Croit-Bot#readme",
+  "devDependencies": {
+    "@types/node": "^26.1.1",
+    "prettier": "^3.9.5",
+    "tsx": "^4.23.0",
+    "typescript": "^7.0.2"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "zod": "^4.4.3"
+  }
+}
