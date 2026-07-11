@@ -1,3 +1,4 @@
+import process from "node:process";
 import "dotenv/config";
 import { z } from "zod";
 
@@ -6,22 +7,29 @@ const optionalString = z.preprocess(
   z.string().min(1).optional(),
 );
 
-const optionalUrl = z.preprocess(
-  (value) => (value === "" ? undefined : value),
-  z.string().url().optional(),
-);
+const optionalUrl = z.preprocess((value) => (value === "" ? undefined : value), z.url().optional());
 
 const optionalSecret = z.preprocess(
   (value) => (value === "" ? undefined : value),
   z.string().min(32).optional(),
 );
 
+const requiredString = (name: string) =>
+  z
+    .string({
+      error: `${name}이(가) 설정되지 않았습니다.`,
+    })
+    .min(1, `${name}이(가) 비어 있습니다.`);
+
+const discordSnowflake = (name: string) =>
+  requiredString(name).regex(/^\d{17,20}$/, `${name} 형식이 올바르지 않습니다.`);
+
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
 
-  DISCORD_TOKEN: optionalString,
-  DISCORD_CLIENT_ID: optionalString,
-  DISCORD_GUILD_ID: optionalString,
+  DISCORD_TOKEN: requiredString("DISCORD_TOKEN"),
+  DISCORD_CLIENT_ID: discordSnowflake("DISCORD_CLIENT_ID"),
+  DISCORD_GUILD_ID: discordSnowflake("DISCORD_GUILD_ID"),
 
   PORT: z.coerce.number().int().positive().default(3000),
 

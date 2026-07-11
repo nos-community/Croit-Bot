@@ -12,7 +12,8 @@
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "commands:deploy": "tsx src/bot/deploy-commands.ts"
   },
   "repository": {
     "type": "git",
