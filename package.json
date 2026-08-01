@@ -15,7 +15,6 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "commands:deploy": "tsx src/bot/deploy-commands.ts",
-
     "db:validate": "prisma validate",
     "db:format": "prisma format",
     "db:generate": "prisma generate",
