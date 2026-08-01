@@ -35,7 +35,7 @@ const envSchema = z.object({
 
   PUBLIC_BASE_URL: optionalUrl.default("http://localhost:3000"),
 
-  DATABASE_URL: optionalString,
+  DATABASE_URL: requiredString("DATABASE_URL"),
   AUTH_TOKEN_SECRET: optionalSecret,
 });
 

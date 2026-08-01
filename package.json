@@ -31,13 +31,18 @@
   "homepage": "https://github.com/nos-community/Croit-Bot#readme",
   "devDependencies": {
     "@types/node": "^26.1.1",
+    "@types/pg": "^8.20.3",
     "prettier": "^3.9.5",
+    "prisma": "^7.9.1",
     "tsx": "^4.23.0",
     "typescript": "^7.0.2"
   },
   "dependencies": {
+    "@prisma/adapter-pg": "^7.9.1",
+    "@prisma/client": "^7.9.1",
     "discord.js": "^14.26.5",
     "dotenv": "^17.4.2",
+    "pg": "^8.22.0",
     "zod": "^4.4.3"
   }
 }
