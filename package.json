@@ -7,13 +7,21 @@
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",
+    "dev:once": "tsx src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "commands:deploy": "tsx src/bot/deploy-commands.ts"
+    "commands:deploy": "tsx src/bot/deploy-commands.ts",
+
+    "db:validate": "prisma validate",
+    "db:format": "prisma format",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:studio": "prisma studio",
+    "db:check": "tsx src/database/check-connection.ts"
   },
   "repository": {
     "type": "git",

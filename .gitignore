@@ -27,3 +27,6 @@ coverage/
 *.tmp
 *.temp
 /src/generated/prisma
+
+# Prisma generated client
+src/generated/prisma/
