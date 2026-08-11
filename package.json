@@ -39,6 +39,7 @@
   "devDependencies": {
     "@types/cookie-parser": "^1.4.10",
     "@types/express": "^5.0.6",
+    "@types/express-session": "^1.19.0",
     "@types/node": "^26.1.1",
     "@types/pg": "^8.20.3",
     "prettier": "^3.9.5",
@@ -53,6 +54,7 @@
     "discord.js": "^14.26.5",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "express-session": "^1.19.0",
     "pg": "^8.22.0",
     "zod": "^4.4.3"
   }

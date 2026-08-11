@@ -1,7 +1,9 @@
 import express from "express";
 import { getAuthenticationRequest } from "../auth/auth.service.js";
+import { sessionMiddleware } from "./middleware/session.js";
 
 const app = express();
+app.use(sessionMiddleware);
 
 app.get("/auth/:token", async (req, res) => {
   const { token } = req.params;

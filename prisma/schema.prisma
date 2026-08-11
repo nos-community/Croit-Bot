@@ -30,19 +30,28 @@ model User {
 }
 
 model AuthRequest {
-
-  id String @id @default(uuid())
-
-  token String @unique
-
-  discordId String
-
-  expiresAt DateTime
-
+  id          String    @id @default(uuid()) @db.Uuid
+  token       String    @unique
+  discordId   String
+  expiresAt   DateTime
   completedAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  authSession AuthSession?
+  
+  @@index([token])
+}
+
+model AuthSession {
+  id            String   @id @default(uuid()) @db.Uuid
+  authRequestId String   @unique @db.Uuid
+  discordId     String
 
   createdAt DateTime @default(now())
+  expiresAt DateTime
 
-  @@index([token])
+  authRequest AuthRequest @relation(fields: [authRequestId], references: [id], onDelete: Cascade)
 
+  @@index([discordId])
+  @@index([expiresAt])
 }
