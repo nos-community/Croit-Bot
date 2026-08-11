@@ -1,4 +1,12 @@
-import { Client, Events, GatewayIntentBits, MessageFlags } from "discord.js";
+import { Client, Collection, Events, GatewayIntentBits } from "discord.js";
+
+import { authCommand } from "./commands/auth.command.js";
+import { pingCommand } from "./commands/ping.command.js";
+
+const commands = new Collection<string, typeof pingCommand>();
+
+commands.set(pingCommand.data.name, pingCommand);
+commands.set(authCommand.data.name, authCommand);
 
 export const discordClient = new Client({
   intents: [GatewayIntentBits.Guilds],
@@ -13,12 +21,27 @@ discordClient.on(Events.InteractionCreate, async (interaction) => {
     return;
   }
 
-  if (interaction.commandName === "ping") {
-    const websocketLatency = Math.round(interaction.client.ws.ping);
+  const command = commands.get(interaction.commandName);
 
-    await interaction.reply({
-      content: `퐁! 현재 지연 시간은 ${websocketLatency}ms입니다.`,
-      flags: MessageFlags.Ephemeral,
-    });
+  if (!command) {
+    return;
+  }
+
+  try {
+    await command.execute(interaction);
+  } catch (error) {
+    console.error(`${interaction.commandName} 명령어 실행 중 오류가 발생했습니다.`, error);
+
+    if (interaction.replied || interaction.deferred) {
+      await interaction.followUp({
+        content: "명령어를 실행하는 중 오류가 발생했습니다.",
+        ephemeral: true,
+      });
+    } else {
+      await interaction.reply({
+        content: "명령어를 실행하는 중 오류가 발생했습니다.",
+        ephemeral: true,
+      });
+    }
   }
 });

@@ -3,6 +3,7 @@ import process from "node:process";
 import { discordClient } from "./bot/client.js";
 import { env } from "./config/env.js";
 import { prisma } from "./database/prisma.js";
+import { startWebServer } from "./web/server.js";
 
 let isShuttingDown = false;
 
@@ -11,6 +12,8 @@ async function bootstrap(): Promise<void> {
 
   await prisma.$connect();
   console.log("데이터베이스에 연결했습니다.");
+
+  startWebServer(env.PORT);
 
   await discordClient.login(env.DISCORD_TOKEN);
 }

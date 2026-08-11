@@ -28,3 +28,21 @@ model User {
 
   @@map("users")
 }
+
+model AuthRequest {
+
+  id String @id @default(uuid())
+
+  token String @unique
+
+  discordId String
+
+  expiresAt DateTime
+
+  completedAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([token])
+
+}
