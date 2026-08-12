@@ -1,21 +1,32 @@
-import {
-  createAuthRequest,
-  findAuthRequestByToken,
-} from "../repositories/auth-request.repository.js";
-import { generateAuthToken } from "../utils/token.js";
+import crypto from "node:crypto";
+import { prisma } from "../database/prisma.js";
 
 const AUTH_REQUEST_EXPIRES_IN_MS = 10 * 60 * 1000;
 
 export async function createAuthenticationRequest(discordId: string) {
-  const token = generateAuthToken();
+  const now = new Date();
+  const expiresAt = new Date(now.getTime() + AUTH_REQUEST_EXPIRES_IN_MS);
 
-  const expiresAt = new Date(Date.now() + AUTH_REQUEST_EXPIRES_IN_MS);
+  await prisma.user.upsert({
+    where: {
+      discordId,
+    },
+    create: {
+      discordId,
+      status: "ACTIVE",
+    },
+    update: {},
+  });
 
-  const authRequest = await createAuthRequest(discordId, token, expiresAt);
+  const token = crypto.randomBytes(32).toString("hex");
+
+  const authRequest = await prisma.authRequest.create({
+    data: {
+      token,
+      discordId,
+      expiresAt,
+    },
+  });
 
   return authRequest;
-}
-
-export async function getAuthenticationRequest(token: string) {
-  return findAuthRequestByToken(token);
 }
