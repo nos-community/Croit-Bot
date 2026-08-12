@@ -37,6 +37,8 @@ const envSchema = z.object({
 
   DATABASE_URL: requiredString("DATABASE_URL"),
   AUTH_TOKEN_SECRET: optionalSecret,
+
+  CROIT_EXTENSION_ID: requiredString("CROIT_EXTENSION_ID"),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);

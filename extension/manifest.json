@@ -1,15 +1,14 @@
 {
   "manifest_version": 3,
   "name": "Croit Authenticator",
-  "version": "0.1.0",
-  "description": "Croit의 e-amusement 인증을 지원합니다.",
-  "permissions": [
-    "cookies"
-  ],
-  "host_permissions": [
-    "https://p.eagate.573.jp/*"
-  ],
+  "version": "1.0.0",
+  "description": "Croit e-amusement 인증 Extension",
+  "permissions": ["cookies"],
+  "host_permissions": ["https://p.eagate.573.jp/*"],
   "background": {
     "service_worker": "dist/background.js"
+  },
+  "externally_connectable": {
+    "matches": ["http://localhost:3000/*"]
   }
 }

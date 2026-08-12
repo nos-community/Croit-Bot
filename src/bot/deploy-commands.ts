@@ -5,10 +5,7 @@ import { pingCommand } from "./commands/ping.command.js";
 import { authCommand } from "./commands/auth.command.js";
 
 // const commands = [pingCommand.toJSON()];
-const commands = [
-  pingCommand.data.toJSON(),
-  authCommand.data.toJSON(),
-];
+const commands = [pingCommand.data.toJSON(), authCommand.data.toJSON()];
 
 const rest = new REST({ version: "10" }).setToken(env.DISCORD_TOKEN);
 

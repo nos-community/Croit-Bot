@@ -16,7 +16,6 @@
     "format:check": "prettier --check .",
     "commands:deploy": "tsx src/bot/deploy-commands.ts",
     "extension:build": "tsc -p extension/tsconfig.json",
-    
     "db:validate": "prisma validate",
     "db:format": "prisma format",
     "db:generate": "prisma generate",

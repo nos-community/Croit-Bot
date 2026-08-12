@@ -1,4 +1,7 @@
-import { createAuthRequest, findAuthRequestByToken } from "../repositories/auth-request.repository.js";
+import {
+  createAuthRequest,
+  findAuthRequestByToken,
+} from "../repositories/auth-request.repository.js";
 import { generateAuthToken } from "../utils/token.js";
 
 const AUTH_REQUEST_EXPIRES_IN_MS = 10 * 60 * 1000;
