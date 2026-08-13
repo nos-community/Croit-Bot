@@ -3,10 +3,14 @@
   "name": "Croit Authenticator",
   "version": "1.0.0",
   "description": "Croit e-amusement 인증 Extension",
-  "permissions": ["cookies"],
+    "permissions": [
+    "cookies",
+    "storage"
+  ],
   "host_permissions": ["https://p.eagate.573.jp/*"],
   "background": {
-    "service_worker": "dist/background.js"
+    "service_worker": "dist/background.js",
+    "type": "module"
   },
   "externally_connectable": {
     "matches": ["http://localhost:3000/*"]

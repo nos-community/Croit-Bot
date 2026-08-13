@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { prisma } from "../../database/prisma.js";
 import { authRequestRepository } from "../../auth/repositories/auth-request.repository.js";
+import { createAuthSessionToken } from "../../auth/auth-session.js";
 
 const router = Router();
 
@@ -73,6 +74,8 @@ router.post("/complete", async (req, res) => {
       return;
     }
 
+    const sessionToken = createAuthSessionToken();
+
     await prisma.$transaction(async (tx) => {
       await tx.user.update({
         where: {
@@ -96,6 +99,7 @@ router.post("/complete", async (req, res) => {
         data: {
           authRequestId: authRequest.id,
           discordId: authRequest.discordId,
+          sessionToken,
           createdAt: now,
           expiresAt: authRequest.expiresAt,
         },
@@ -107,6 +111,7 @@ router.post("/complete", async (req, res) => {
     res.status(200).json({
       success: true,
       message: "e-amusement 인증이 완료되었습니다.",
+      sessionToken,
     });
   } catch (error: unknown) {
     console.error("e-amusement 인증 완료 처리 중 오류가 발생했습니다.", error);

@@ -47,9 +47,10 @@ model AuthSession {
   id            String   @id @default(uuid()) @db.Uuid
   authRequestId String   @unique @db.Uuid
   discordId     String
+  sessionToken  String   @unique @map("session_token")
 
-  createdAt DateTime @default(now())
-  expiresAt DateTime
+  createdAt     DateTime @default(now())
+  expiresAt     DateTime
 
   authRequest AuthRequest @relation(fields: [authRequestId], references: [id], onDelete: Cascade)
 
