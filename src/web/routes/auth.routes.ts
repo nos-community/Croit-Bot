@@ -9,7 +9,9 @@ const router = Router();
 
 const completeAuthSchema = z.object({
   token: z.string().min(1, "인증 토큰이 필요합니다."),
-  snsid: z.coerce.string().min(1, "e-amusement 사용자 식별자가 필요합니다."),
+  snsid: z.string().min(1, "e-amusement 사용자 식별자가 필요합니다."),
+  // `sessionCookie`는 확장에서 전송되지 않을 수 있으므로 선택 항목으로 둡니다.
+  sessionCookie: z.string().optional(),
 });
 
 router.post("/complete", async (req, res) => {
