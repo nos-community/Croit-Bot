@@ -104,7 +104,11 @@ async function checkEamusementAuth(): Promise<AuthCheckResult> {
 }
 
 chrome.runtime.onMessageExternal.addListener((message, _sender, sendResponse) => {
-  if (message?.type !== "CHECK_EAMUSEMENT_AUTH" && message?.type !== "GET_NOSTALGIA_PLAYER_DATA") {
+  if (
+    message?.type !== "CHECK_EAMUSEMENT_AUTH" &&
+    message?.type !== "GET_NOSTALGIA_PLAYER_DATA" &&
+    message?.type !== "GET_NOSTALGIA_SONG_GRADES"
+  ) {
     return;
   }
 
@@ -125,6 +129,18 @@ chrome.runtime.onMessageExternal.addListener((message, _sender, sendResponse) =>
 
     void getNostalgiaPlayerData().then((result) => {
       console.log("[Croit Extension] 노스텔지어 정보 조회 결과:", result);
+
+      sendResponse(result);
+    });
+
+    return true;
+  }
+
+  if (message.type === "GET_NOSTALGIA_SONG_GRADES") {
+    console.log("[Croit Extension] 노스텔지어 곡 그레이드 합산 요청을 받았습니다.");
+
+    void getNostalgiaSongGrades().then((result) => {
+      console.log("[Croit Extension] 노스텔지어 곡 그레이드 합산 결과:", result);
 
       sendResponse(result);
     });
@@ -246,5 +262,100 @@ async function getNostalgiaPlayerData(): Promise<NostalgiaPlayerResult> {
       success: false,
       message: "노스텔지어 정보를 조회하는 중 오류가 발생했습니다.",
     };
+  }
+}
+
+const NOSTALGIA_MUSIC_URL =
+  "https://p.eagate.573.jp/game/nostalgia/op3/json/pdata_getdata.html?service_kind=music_data&pdata_kind=music_data";
+
+function collectGradesFromObject(obj: any, out: number[]) {
+  if (!obj || typeof obj !== "object") return;
+
+  if (Array.isArray(obj)) {
+    for (const item of obj) collectGradesFromObject(item, out);
+    return;
+  }
+
+  for (const key of Object.keys(obj)) {
+    const val = obj[key];
+    if (typeof val === "number") {
+      if (key.toLowerCase().includes("grade") || key.toLowerCase().includes("dj_grade")) {
+        out.push(val);
+      }
+    } else if (typeof val === "string") {
+      const n = Number(val);
+      if (
+        !Number.isNaN(n) &&
+        (key.toLowerCase().includes("grade") || key.toLowerCase().includes("dj_grade"))
+      ) {
+        out.push(n);
+      }
+    } else if (typeof val === "object") {
+      collectGradesFromObject(val, out);
+    }
+  }
+}
+
+interface NostalgiaSongGradesResult {
+  success: boolean;
+  message: string;
+  gradeSum?: number;
+}
+
+async function getNostalgiaSongGrades(): Promise<NostalgiaSongGradesResult> {
+  try {
+    console.log("[Croit Extension] Nostalgia music_data 요청을 시작합니다.");
+
+    // Try GET first
+    let response = await fetch(NOSTALGIA_MUSIC_URL, {
+      method: "GET",
+      credentials: "include",
+      cache: "no-store",
+      headers: {
+        Accept: "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      // Fallback to POST with same URL (some endpoints accept POST)
+      response = await fetch(NOSTALGIA_MUSIC_URL, {
+        method: "POST",
+        credentials: "include",
+        cache: "no-store",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({}),
+      });
+    }
+
+    if (!response.ok) {
+      return { success: false, message: `music_data 응답 실패: HTTP ${response.status}` };
+    }
+
+    const data = await response.json().catch(() => null);
+
+    if (!data) {
+      return { success: false, message: "music_data 응답을 파싱하지 못했습니다." };
+    }
+
+    const grades: number[] = [];
+    collectGradesFromObject(data, grades);
+
+    if (grades.length === 0) {
+      // No explicit grade fields found — try to infer from known arrays
+      console.warn("music_data: grade 필드를 찾지 못했습니다. 전체 응답 샘플을 확인하세요.", data);
+      return { success: false, message: "music_data에서 grade 필드를 찾지 못했습니다." };
+    }
+
+    grades.sort((a, b) => b - a);
+    const top50 = grades.slice(0, 50);
+    const sum = top50.reduce((s, v) => s + v, 0);
+
+    return { success: true, message: "성공", gradeSum: sum };
+  } catch (error: unknown) {
+    console.error("getNostalgiaSongGrades 오류:", error);
+    return { success: false, message: "곡 그레이드 조회 중 오류가 발생했습니다." };
   }
 }

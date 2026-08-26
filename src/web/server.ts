@@ -4,6 +4,8 @@ import path from "node:path";
 import { authRouter } from "./routes/auth.routes.js";
 import { authPageRouter } from "./routes/auth-page.route.js";
 import { eamusementRouter } from "./routes/eamusement.route.js";
+import { gradeRouter } from "./routes/grade.routes.js";
+import { gradePageRouter } from "./routes/grade-page.route.js";
 
 export function startWebServer(port: number) {
   const app = express();
@@ -27,6 +29,12 @@ export function startWebServer(port: number) {
 
   // 인증 페이지
   app.use("/auth", authPageRouter);
+
+  // grade update page
+  app.use("/update", gradePageRouter);
+
+  // grade API
+  app.use("/api/grade", gradeRouter);
 
   app.use("/api/eamusement", eamusementRouter);
 

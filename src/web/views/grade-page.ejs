@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Croit Grade 업데이트</title>
+  <link rel="stylesheet" href="/public/css/auth-page.css">
+</head>
+<body>
+  <main class="container">
+    <h1>Grade 자동 업데이트</h1>
+    <p class="description">이 창을 닫지 마세요. 자동으로 곡 점수 합산을 시도합니다.</p>
+    <div id="status" class="status">상태: 데이터 수집 중...</div>
+  </main>
+
+  <script>
+    const TOKEN = <%- JSON.stringify(token) %>;
+    const EXTENSION_ID = <%- JSON.stringify(process.env.CROIT_EXTENSION_ID) %>;
+  </script>
+  <script src="/public/js/grade-page.js" defer></script>
+</body>
+</html>

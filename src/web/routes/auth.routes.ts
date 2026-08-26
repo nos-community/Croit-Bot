@@ -5,7 +5,9 @@ import { prisma } from "../../database/prisma.js";
 import { authRequestRepository } from "../../auth/repositories/auth-request.repository.js";
 import { createAuthSessionToken } from "../../auth/auth-session.js";
 import { discordClient } from "../../bot/client.js";
+import { PermissionFlagsBits } from "discord.js";
 import { env } from "../../config/env.js";
+import { formatNickname } from "../../utils/nickname.js";
 
 const router = Router();
 
@@ -78,6 +80,16 @@ router.post("/complete", async (req, res) => {
       return;
     }
 
+    // Fetch guild member early to capture baseNickname for DB (avoid nickname stacking)
+    let baseNicknameForDb: string | null = null;
+    try {
+      const guild = await discordClient.guilds.fetch(env.DISCORD_GUILD_ID);
+      const memberForBase = await guild.members.fetch(authRequest.discordId);
+      baseNicknameForDb = memberForBase.nickname ?? memberForBase.user.username;
+    } catch (fetchNickErr) {
+      console.warn("baseNickname을 가져오는 데 실패했습니다.", fetchNickErr);
+    }
+
     const sessionToken = createAuthSessionToken();
 
     await prisma.$transaction(async (tx: any) => {
@@ -87,6 +99,7 @@ router.post("/complete", async (req, res) => {
         },
         data: {
           eamusementId: snsid,
+          baseNickname: (user as any).baseNickname ?? baseNicknameForDb,
         },
       });
 
@@ -126,6 +139,42 @@ router.post("/complete", async (req, res) => {
       }
     } catch (roleError: unknown) {
       console.error("역할 부여 중 오류가 발생했습니다. 인증은 완료되었습니다.", roleError);
+    }
+
+    try {
+      if (env.VERIFIED_NICKNAME_FORMAT) {
+        const guild = await discordClient.guilds.fetch(env.DISCORD_GUILD_ID);
+        const member = await guild.members.fetch(authRequest.discordId);
+
+        const botId = discordClient.user?.id;
+        if (!botId) {
+          console.warn("봇 사용자 정보가 준비되지 않아 닉네임 변경을 건너뜁니다.");
+        } else {
+          const botMember = await guild.members.fetch(botId);
+
+          const canManageNicknames = botMember.permissions.has(PermissionFlagsBits.ManageNicknames);
+
+          if (!canManageNicknames) {
+            console.warn("봇에 Manage Nicknames 권한이 없어 닉네임 변경을 건너뜁니다.");
+          } else if (!member.manageable) {
+            console.warn("대상 멤버를 관리할 수 없어 닉네임 변경을 건너뜁니다.");
+          } else {
+            // Use baseNickname from DB (if present) to avoid stacking
+            const baseForUse =
+              (user as any).baseNickname ?? baseNicknameForDb ?? member.displayName;
+
+            const newNick = formatNickname(baseForUse, "🌱");
+
+            await member.setNickname(newNick);
+
+            console.log(
+              `닉네임 변경(🌱) 성공: Discord ID=${authRequest.discordId} -> nick=${newNick}`,
+            );
+          }
+        }
+      }
+    } catch (nickError: unknown) {
+      console.error("닉네임 변경 중 오류가 발생했습니다. 인증은 완료되었습니다.", nickError);
     }
 
     console.log(`e-amusement 인증이 완료되었습니다. Discord ID: ${authRequest.discordId}`);
