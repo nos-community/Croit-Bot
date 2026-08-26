@@ -8,6 +8,10 @@ import { eamusementRouter } from "./routes/eamusement.route.js";
 export function startWebServer(port: number) {
   const app = express();
 
+  app.get("/", (req, res) => {
+    res.status(200).send("OK");
+  });
+
   // JSON body parsing
   app.use(express.json());
 
