@@ -80,7 +80,7 @@ router.post("/complete", async (req, res) => {
 
     const sessionToken = createAuthSessionToken();
 
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx: any) => {
       await tx.user.update({
         where: {
           id: user.id,
