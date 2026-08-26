@@ -1,4 +1,5 @@
 import express from "express";
+import path from "node:path";
 
 import { authRouter } from "./routes/auth.routes.js";
 import { authPageRouter } from "./routes/auth-page.route.js";
@@ -7,7 +8,15 @@ import { eamusementRouter } from "./routes/eamusement.route.js";
 export function startWebServer(port: number) {
   const app = express();
 
+  // JSON body parsing
   app.use(express.json());
+
+  // Set view engine and views directory
+  app.set("view engine", "ejs");
+  app.set("views", path.join(process.cwd(), "src/web/views"));
+
+  // Serve static assets (CSS/JS) under /public
+  app.use("/public", express.static(path.join(process.cwd(), "src/web/public")));
 
   // API
   app.use("/api/auth", authRouter);

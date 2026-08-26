@@ -10,6 +10,9 @@ export const authCommand = {
   async execute(interaction: ChatInputCommandInteraction) {
     const discordId = interaction.user.id;
 
+    // Defer reply to avoid interaction timeout while creating request / sending DM
+    await interaction.deferReply({ ephemeral: true });
+
     const authRequest = await createAuthenticationRequest(discordId);
 
     const authUrl = `${env.PUBLIC_BASE_URL}/auth/${authRequest.token}`;
@@ -27,14 +30,12 @@ export const authCommand = {
         ].join("\n"),
       );
 
-      await interaction.reply({
+      await interaction.editReply({
         content: "인증 링크를 DM으로 전송했습니다. DM을 확인해주세요.",
-        ephemeral: true,
       });
     } catch {
-      await interaction.reply({
+      await interaction.editReply({
         content: "DM을 보내지 못했습니다. 서버 설정에서 DM 수신이 허용되어 있는지 확인해주세요.",
-        ephemeral: true,
       });
     }
   },

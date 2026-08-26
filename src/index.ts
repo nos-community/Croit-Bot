@@ -13,9 +13,14 @@ async function bootstrap(): Promise<void> {
   await prisma.$connect();
   console.log("데이터베이스에 연결했습니다.");
 
-  startWebServer(env.PORT);
-
+  // 먼저 디스코드 로그인 및 준비 완료를 기다린 뒤 웹서버를 시작합니다.
   await discordClient.login(env.DISCORD_TOKEN);
+  await new Promise<void>((resolve) => {
+    // 'ready' 이벤트가 발생하면 resolve
+    discordClient.once("ready", () => resolve());
+  });
+
+  startWebServer(env.PORT);
 }
 
 async function shutdown(signal: NodeJS.Signals): Promise<void> {

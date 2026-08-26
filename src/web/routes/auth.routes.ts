@@ -4,6 +4,8 @@ import { z } from "zod";
 import { prisma } from "../../database/prisma.js";
 import { authRequestRepository } from "../../auth/repositories/auth-request.repository.js";
 import { createAuthSessionToken } from "../../auth/auth-session.js";
+import { discordClient } from "../../bot/client.js";
+import { env } from "../../config/env.js";
 
 const router = Router();
 
@@ -107,6 +109,24 @@ router.post("/complete", async (req, res) => {
         },
       });
     });
+
+    // 역할 부여 시도: 실패해도 인증 자체는 성공으로 처리합니다.
+    try {
+      if (env.VERIFIED_ROLE_ID) {
+        const guild = await discordClient.guilds.fetch(env.DISCORD_GUILD_ID);
+        const member = await guild.members.fetch(authRequest.discordId);
+
+        await member.roles.add(env.VERIFIED_ROLE_ID);
+
+        console.log(
+          `역할 부여 성공: Discord ID=${authRequest.discordId} -> role=${env.VERIFIED_ROLE_ID}`,
+        );
+      } else {
+        console.warn("VERIFIED_ROLE_ID가 설정되지 않아 역할 부여를 건너뜁니다.");
+      }
+    } catch (roleError: unknown) {
+      console.error("역할 부여 중 오류가 발생했습니다. 인증은 완료되었습니다.", roleError);
+    }
 
     console.log(`e-amusement 인증이 완료되었습니다. Discord ID: ${authRequest.discordId}`);
 

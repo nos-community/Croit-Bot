@@ -31,6 +31,9 @@ const envSchema = z.object({
   DISCORD_CLIENT_ID: discordSnowflake("DISCORD_CLIENT_ID"),
   DISCORD_GUILD_ID: discordSnowflake("DISCORD_GUILD_ID"),
 
+  // Optional: role ID to assign after verification
+  VERIFIED_ROLE_ID: discordSnowflake("VERIFIED_ROLE_ID").optional(),
+
   PORT: z.coerce.number().int().positive().default(3000),
 
   PUBLIC_BASE_URL: optionalUrl.default("http://localhost:3000"),

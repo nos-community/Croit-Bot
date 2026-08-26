@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Croit e-amusement 인증</title>
+  <link rel="stylesheet" href="/public/css/auth-page.css">
+</head>
+<body>
+  <main class="container">
+    <h1>Croit e-amusement 인증</h1>
+
+    <p class="description">
+      Croit에서 노스텔지어 정보를 조회하기 위해
+      e-amusement 계정을 인증합니다.
+    </p>
+
+    <div class="step">
+      <strong>① e-amusement에 로그인해주세요.</strong>
+    </div>
+
+    <a
+      class="link-button primary"
+      href="https://p.eagate.573.jp/gate/p/home/"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      e-amusement 열기
+    </a>
+
+    <div class="step" style="margin-top: 24px;">
+      로그인 후 아래 버튼을 눌러주세요.
+    </div>
+
+    <button id="check-button" class="secondary" type="button">로그인 상태 확인</button>
+
+    <div id="status" class="status">상태: e-amusement 로그인 상태를 확인할 준비가 되었습니다.</div>
+  </main>
+
+  <script>
+    const TOKEN = <%- JSON.stringify(token) %>;
+    const EXTENSION_ID = <%- JSON.stringify(extensionId) %>;
+  </script>
+  <script src="/public/js/auth-page.js" defer></script>
+</body>
+</html>
