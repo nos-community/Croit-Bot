@@ -13,6 +13,6 @@
     "type": "module"
   },
   "externally_connectable": {
-    "matches": ["http://localhost:3000/*"]
+    "matches": ["https://croit-bot.onrender.com/*"]
   }
 }
