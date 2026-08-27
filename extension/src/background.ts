@@ -53,8 +53,6 @@ async function checkEamusementAuth(): Promise<AuthCheckResult> {
       const bodyText = await response.text().catch(() => "<non-text body>");
       console.warn("[Croit Extension] getinfo.html 비정상 응답 본문:", bodyText);
 
-      // 일부 환경에서 API가 400을 반환하더라도 쿠키가 존재하면 로그인 세션이 유효한 경우가 있습니다.
-      // 큰 구조 변경 없이 사용자 경험을 보장하기 위해, 400 응답일 때는 쿠키 존재 여부로 폴백 처리합니다.
       if (response.status === 400 && cookie) {
         console.log(
           "[Croit Extension] 400 응답 받았지만 M573SSID 쿠키가 존재하므로 인증을 허용합니다.",
@@ -115,11 +113,19 @@ chrome.runtime.onMessageExternal.addListener((message, _sender, sendResponse) =>
   if (message.type === "CHECK_EAMUSEMENT_AUTH") {
     console.log("[Croit Extension] 인증 상태 확인 요청을 받았습니다.");
 
-    void checkEamusementAuth().then((result) => {
-      console.log("[Croit Extension] 인증 상태 확인 결과:", result);
-
-      sendResponse(result);
-    });
+    checkEamusementAuth()
+      .then((result) => {
+        console.log("[Croit Extension] 인증 상태 확인 결과:", result);
+        sendResponse(result);
+      })
+      .catch((err) => {
+        console.error("[Croit Extension] 인증 상태 확인 에러:", err);
+        sendResponse({
+          success: false,
+          authenticated: false,
+          message: err?.message ?? "인증 확인 실패",
+        });
+      });
 
     return true;
   }
@@ -127,11 +133,15 @@ chrome.runtime.onMessageExternal.addListener((message, _sender, sendResponse) =>
   if (message.type === "GET_NOSTALGIA_PLAYER_DATA") {
     console.log("[Croit Extension] 노스텔지어 정보 조회 요청을 받았습니다.");
 
-    void getNostalgiaPlayerData().then((result) => {
-      console.log("[Croit Extension] 노스텔지어 정보 조회 결과:", result);
-
-      sendResponse(result);
-    });
+    getNostalgiaPlayerData()
+      .then((result) => {
+        console.log("[Croit Extension] 노스텔지어 정보 조회 결과:", result);
+        sendResponse(result);
+      })
+      .catch((err) => {
+        console.error("[Croit Extension] 정보 조회 에러:", err);
+        sendResponse({ success: false, message: err?.message ?? "플레이어 정보 조회 실패" });
+      });
 
     return true;
   }
@@ -139,11 +149,15 @@ chrome.runtime.onMessageExternal.addListener((message, _sender, sendResponse) =>
   if (message.type === "GET_NOSTALGIA_SONG_GRADES") {
     console.log("[Croit Extension] 노스텔지어 곡 그레이드 합산 요청을 받았습니다.");
 
-    void getNostalgiaSongGrades().then((result) => {
-      console.log("[Croit Extension] 노스텔지어 곡 그레이드 합산 결과:", result);
-
-      sendResponse(result);
-    });
+    getNostalgiaSongGrades()
+      .then((result) => {
+        console.log("[Croit Extension] 노스텔지어 곡 그레이드 합산 결과:", result);
+        sendResponse(result);
+      })
+      .catch((err) => {
+        console.error("[Croit Extension] 곡 그레이드 조회 에러:", err);
+        sendResponse({ success: false, message: err?.message ?? "곡 그레이드 조회 실패" });
+      });
 
     return true;
   }
