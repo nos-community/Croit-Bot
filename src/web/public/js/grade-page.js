@@ -52,58 +52,71 @@ document.addEventListener("DOMContentLoaded", () => {
 
     console.log("[Croit] Extension에 그레이드 조회 요청을 보냅니다.");
 
-    chrome.runtime.sendMessage(
-      EXTENSION_ID,
-      {
-        type: "GET_NOSTALGIA_SONG_GRADES",
-      },
-      (result) => {
-        console.log("[Croit] Extension 응답:", result);
+    console.log("[Croit] Extension에 그레이드 조회 요청을 보냅니다.");
 
-        if (chrome.runtime.lastError) {
-          console.error("[Croit] Extension 통신 오류:", chrome.runtime.lastError.message);
-          setStatus(
-            "Croit 인증 Extension과 연결할 수 없습니다. Extension이 설치되어 있고 활성화되어 있는지 확인해주세요.",
-            "error",
-          );
+    try {
+      chrome.runtime.sendMessage(
+        EXTENSION_ID,
+        {
+          type: "GET_NOSTALGIA_SONG_GRADES",
+        },
+        (result) => {
+          if (chrome.runtime.lastError) {
+            const errDetail = chrome.runtime.lastError.message;
+            console.error("[Croit] Extension 통신 상세 오류:", errDetail);
 
-          checkButton.disabled = false;
-          return;
-        }
+            setStatus(
+              `Extension 통신 실패 (${errDetail}). Extension ID 및 새로고침 상태를 확인해주세요.`,
+              "error"
+            );
 
-        if (!result) {
-          setStatus("Extension으로부터 응답을 받지 못했습니다.", "error");
-          checkButton.disabled = false;
-          return;
-        }
+            checkButton.disabled = false;
+            return;
+          }
 
-        if (!result.success || !Array.isArray(result.musicData)) {
-          setStatus(result.message ?? "e-amusement에 로그인되어 있지 않거나 데이터를 가져오지 못했습니다.", "error");
-          checkButton.disabled = false;
-          return;
-        }
+          console.log("[Croit] Extension 응답 수신:", result);
 
-        console.log(`[Croit] 곡 데이터 ${result.musicData.length}개 수신, 서버로 전송합니다.`);
-        setStatus("그레이드를 계산하는 중입니다...");
+          if (!result) {
+            setStatus("Extension으로부터 응답을 받지 못했습니다.", "error");
+            checkButton.disabled = false;
+            return;
+          }
 
-        void completeGradeUpdate(result.musicData)
+          if (!result.success || !Array.isArray(result.musicData)) {
+            setStatus(
+              result.message ?? "e-amusement에 로그인되어 있지 않거나 데이터를 가져오지 못했습니다.",
+              "error"
+            );
+            checkButton.disabled = false;
+            return;
+          }
+
+          console.log(`[Croit] 곡 데이터 ${result.musicData.length}개 수신, 서버로 전송합니다.`);
+          setStatus("그레이드를 계산하는 중입니다...");
+
+          void completeGradeUpdate(result.musicData)
             .then((data) => {
               console.log("[Croit] 서버 갱신 완료:", data.nickname, data.gradeBasic);
 
               setStatus(`닉네임이 "${data.nickname}"(으)로 갱신되었습니다. 이 창을 닫으셔도 됩니다.`, "success");
               checkButton.textContent = "갱신 완료";
             })
-          .catch((error) => {
-            console.error("[Croit] 서버 갱신 처리 오류:", error);
+            .catch((error) => {
+              console.error("[Croit] 서버 갱신 처리 오류:", error);
 
-            setStatus(
-              "그레이드 정보를 Croit에 반영하지 못했습니다. 잠시 후 다시 시도해주세요.",
-              "error",
-            );
+              setStatus(
+                "그레이드 정보를 Croit에 반영하지 못했습니다. 잠시 후 다시 시도해주세요.",
+                "error"
+              );
 
-            checkButton.disabled = false;
-          });
-      },
-    );
+              checkButton.disabled = false;
+            });
+        }
+      );
+    } catch (e) {
+      console.error("[Croit] sendMessage 예외 발생:", e);
+      setStatus("Extension 호출 중 예외가 발생했습니다.", "error");
+      checkButton.disabled = false;
+    }
   });
 });

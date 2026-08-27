@@ -1,6 +1,19 @@
 const EAMUSEMENT_URL = "https://p.eagate.573.jp/";
 const EAMUSEMENT_INFO_URL = "https://p.eagate.573.jp/gate/p/tare/getinfo.html";
 
+console.log("[Croit Background] Service Worker가 정상 실행되었습니다.");
+
+chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => {
+  console.log("[Croit Background] 외부 메시지 수신됨:", message, "발신자:", sender.url);
+
+  if (message?.type === "GET_NOSTALGIA_SONG_GRADES") {
+    setTimeout(() => {
+      sendResponse({ success: true, musicData: [], message: "테스트 성공" });
+    }, 500);
+    return true;
+  }
+});
+
 interface EamusementUserInfo {
   status?: number;
   snsid?: string;
