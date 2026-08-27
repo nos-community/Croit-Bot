@@ -1,6 +1,6 @@
-import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
-import { createGradeUpdateRequest } from "../../grade/grade.service.js";
+import { SlashCommandBuilder, ChatInputCommandInteraction } from "discord.js";
 import { env } from "../../config/env.js";
+import { createGradeUpdateRequest } from "../../grade/grade.service.js";
 
 export const updateCommand = {
   data: new SlashCommandBuilder()
@@ -14,42 +14,26 @@ export const updateCommand = {
       const req = await createGradeUpdateRequest(discordId);
       const updateUrl = `${env.PUBLIC_BASE_URL}/update/${req.token}`;
 
-      try {
-        await interaction.user.send(
-          [
-            "Croit Grade 업데이트를 시작합니다.",
-            "",
-            "아래 링크를 눌러 업데이트를 진행해주세요.",
-            "",
-            updateUrl,
-            "",
-            "이 링크는 10분 동안 유효합니다.",
-          ].join("\n"),
-        );
+      const messageContent = [
+        "Croit Grade 업데이트를 시작합니다.",
+        "",
+        "아래 링크를 눌러 업데이트를 진행해주세요.",
+        "",
+        updateUrl,
+        "",
+        "이 링크는 10분 동안 유효합니다.",
+      ].join("\n");
 
-        await interaction.editReply({
-          content: "업데이트 링크를 DM으로 전송했습니다. DM을 확인해주세요.",
-        });
-      } catch (dmError) {
-        console.error(`[update.command] DM 전송 실패: ${discordId}`, dmError);
-        await interaction.editReply({
-          content: "DM을 보내지 못했습니다. DM을 허용했는지 확인해주세요.",
-        });
-      }
+      await interaction.user.send(messageContent);
+      await interaction.editReply({
+        content: "DM으로 그레이드 갱신 링크를 보냈습니다! DM을 확인해 주세요.",
+      });
     } catch (error) {
-      console.error(`[update.command] 요청 생성 실패: ${discordId}`, error);
-
-      const errorMessage = {
-        content: "업데이트 요청을 생성하는 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
-      };
-
-      if (interaction.deferred || interaction.replied) {
-        await interaction.editReply(errorMessage).catch(async () => {
-          await interaction.followUp({ ...errorMessage, ephemeral: true }).catch(() => {});
-        });
-      } else {
-        await interaction.followUp({ ...errorMessage, ephemeral: true }).catch(() => {});
-      }
+      console.error("[update.command] 오류:", error);
+      await interaction.editReply({
+        content:
+          "DM을 보낼 수 없습니다. 디스코드 개인정보 설정에서 서버 멤버의 DM 수신을 허용해 주세요.",
+      });
     }
   },
 };

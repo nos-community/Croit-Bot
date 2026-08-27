@@ -3,7 +3,7 @@
   "name": "Croit Authenticator",
   "version": "1.0.0",
   "description": "Croit e-amusement 인증 Extension",
-    "permissions": [
+  "permissions": [
     "cookies",
     "storage"
   ],
@@ -13,6 +13,11 @@
     "type": "module"
   },
   "externally_connectable": {
-    "matches": ["https://croit-bot.onrender.com/*"]
+    "matches": [
+      "https://croit-bot.onrender.com/*",
+      "http://localhost:3000/*",
+      "http://localhost/*",
+      "http://127.0.0.1/*"
+    ]
   }
 }
