@@ -268,46 +268,25 @@ async function getNostalgiaPlayerData(): Promise<NostalgiaPlayerResult> {
 const NOSTALGIA_MUSIC_URL =
   "https://p.eagate.573.jp/game/nostalgia/op3/json/pdata_getdata.html?service_kind=music_data&pdata_kind=music_data";
 
-function collectGradesFromObject(obj: any, out: number[]) {
-  if (!obj || typeof obj !== "object") return;
-
-  if (Array.isArray(obj)) {
-    for (const item of obj) collectGradesFromObject(item, out);
-    return;
-  }
-
-  for (const key of Object.keys(obj)) {
-    const val = obj[key];
-    if (typeof val === "number") {
-      if (key.toLowerCase().includes("grade") || key.toLowerCase().includes("dj_grade")) {
-        out.push(val);
-      }
-    } else if (typeof val === "string") {
-      const n = Number(val);
-      if (
-        !Number.isNaN(n) &&
-        (key.toLowerCase().includes("grade") || key.toLowerCase().includes("dj_grade"))
-      ) {
-        out.push(n);
-      }
-    } else if (typeof val === "object") {
-      collectGradesFromObject(val, out);
-    }
-  }
+interface NostalgiaMusicResponse {
+  status?: number;
+  data?: {
+    music?: unknown[];
+  };
+  [key: string]: unknown;
 }
 
 interface NostalgiaSongGradesResult {
   success: boolean;
   message: string;
-  gradeSum?: number;
+  musicData?: unknown[];
 }
 
 async function getNostalgiaSongGrades(): Promise<NostalgiaSongGradesResult> {
   try {
     console.log("[Croit Extension] Nostalgia music_data 요청을 시작합니다.");
 
-    // Try GET first
-    let response = await fetch(NOSTALGIA_MUSIC_URL, {
+    const response = await fetch(NOSTALGIA_MUSIC_URL, {
       method: "GET",
       credentials: "include",
       cache: "no-store",
@@ -316,46 +295,31 @@ async function getNostalgiaSongGrades(): Promise<NostalgiaSongGradesResult> {
       },
     });
 
-    if (!response.ok) {
-      // Fallback to POST with same URL (some endpoints accept POST)
-      response = await fetch(NOSTALGIA_MUSIC_URL, {
-        method: "POST",
-        credentials: "include",
-        cache: "no-store",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify({}),
-      });
-    }
+    console.log("[Croit Extension] music_data 응답:", response.status);
 
     if (!response.ok) {
       return { success: false, message: `music_data 응답 실패: HTTP ${response.status}` };
     }
 
-    const data = await response.json().catch(() => null);
+    const data = (await response.json()) as NostalgiaMusicResponse;
 
-    if (!data) {
-      return { success: false, message: "music_data 응답을 파싱하지 못했습니다." };
+    if (data.status !== 0 || !Array.isArray(data.data?.music)) {
+      console.warn("[Croit Extension] music_data 응답 형식이 예상과 다릅니다.", data);
+      return {
+        success: false,
+        message: "곡 데이터를 불러오지 못했습니다. e-amusement에 로그인되어 있는지 확인해주세요.",
+      };
     }
 
-    const grades: number[] = [];
-    collectGradesFromObject(data, grades);
+    console.log(`[Croit Extension] 곡 데이터 ${data.data!.music!.length}개 수신 완료.`);
 
-    if (grades.length === 0) {
-      // No explicit grade fields found — try to infer from known arrays
-      console.warn("music_data: grade 필드를 찾지 못했습니다. 전체 응답 샘플을 확인하세요.", data);
-      return { success: false, message: "music_data에서 grade 필드를 찾지 못했습니다." };
-    }
-
-    grades.sort((a, b) => b - a);
-    const top50 = grades.slice(0, 50);
-    const sum = top50.reduce((s, v) => s + v, 0);
-
-    return { success: true, message: "성공", gradeSum: sum };
+    return {
+      success: true,
+      message: "곡 데이터를 성공적으로 불러왔습니다.",
+      musicData: data.data!.music,
+    };
   } catch (error: unknown) {
-    console.error("getNostalgiaSongGrades 오류:", error);
-    return { success: false, message: "곡 그레이드 조회 중 오류가 발생했습니다." };
+    console.error("[Croit Extension] 곡 데이터 조회 중 오류:", error);
+    return { success: false, message: "곡 데이터를 조회하는 중 오류가 발생했습니다." };
   }
 }

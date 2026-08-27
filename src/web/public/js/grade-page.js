@@ -6,7 +6,7 @@ function setStatus(message, type = "") {
   statusElement.className = "status " + type;
 }
 
-async function completeGradeUpdate(gradeSum) {
+async function completeGradeUpdate(musicData) {
   const response = await fetch("/api/grade/complete", {
     method: "POST",
     headers: {
@@ -14,7 +14,7 @@ async function completeGradeUpdate(gradeSum) {
     },
     body: JSON.stringify({
       token: TOKEN,
-      gradeSum: Number(gradeSum),
+      musicData: musicData,
     }),
   });
 
@@ -77,17 +77,18 @@ document.addEventListener("DOMContentLoaded", () => {
           return;
         }
 
-        if (!result.success || typeof result.gradeSum !== "number") {
+        if (!result.success || !Array.isArray(result.musicData)) {
           setStatus(result.message ?? "e-amusement에 로그인되어 있지 않거나 데이터를 가져오지 못했습니다.", "error");
           checkButton.disabled = false;
           return;
         }
 
-        console.log("[Croit] 그레이드 합산 성공:", result.gradeSum);
+        console.log(`[Croit] 곡 데이터 ${result.musicData.length}개 수신, 서버로 전송합니다.`);
+        setStatus("그레이드를 계산하는 중입니다...");
 
-        void completeGradeUpdate(result.gradeSum)
+        void completeGradeUpdate(result.musicData)
           .then((data) => {
-            console.log("[Croit] 서버 갱신 완료:", data.nickname);
+            console.log("[Croit] 서버 갱신 완료:", data.nickname, data.gradeTotal);
 
             setStatus(`닉네임이 "${data.nickname}"(으)로 갱신되었습니다. 이 창을 닫으셔도 됩니다.`, "success");
             checkButton.textContent = "갱신 완료";

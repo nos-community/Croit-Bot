@@ -11,10 +11,51 @@ import { env } from "../../config/env.js";
 
 const router = Router();
 
+const musicSheetSchema = z
+  .object({
+    grade_basic: z.number().optional(),
+    grade_recital: z.number().optional(),
+  })
+  .passthrough();
+
+const musicEntrySchema = z
+  .object({
+    sheet: z.array(musicSheetSchema).optional(),
+  })
+  .passthrough();
+
 const completeSchema = z.object({
   token: z.string(),
-  gradeSum: z.number().int().nonnegative(),
+  musicData: z.array(musicEntrySchema),
 });
+
+function computeGradeTotal(musicData: z.infer<typeof musicEntrySchema>[]) {
+  const basicGrades: number[] = [];
+  const recitalGrades: number[] = [];
+
+  for (const music of musicData) {
+    for (const sheet of music.sheet ?? []) {
+      if (typeof sheet.grade_basic === "number" && sheet.grade_basic > 0) {
+        basicGrades.push(sheet.grade_basic);
+      }
+      if (typeof sheet.grade_recital === "number" && sheet.grade_recital > 0) {
+        recitalGrades.push(sheet.grade_recital);
+      }
+    }
+  }
+
+  basicGrades.sort((a, b) => b - a);
+  recitalGrades.sort((a, b) => b - a);
+
+  const basicSum = basicGrades.slice(0, 50).reduce((sum, v) => sum + v, 0);
+  const recitalSum = recitalGrades.slice(0, 50).reduce((sum, v) => sum + v, 0);
+
+  return {
+    basicSum,
+    recitalSum,
+    total: basicSum + recitalSum,
+  };
+}
 
 router.post("/complete", async (req, res) => {
   const parsed = completeSchema.safeParse(req.body);
@@ -24,7 +65,7 @@ router.post("/complete", async (req, res) => {
     return;
   }
 
-  const { token, gradeSum } = parsed.data;
+  const { token, musicData } = parsed.data;
 
   const gradeRequest = await findGradeUpdateRequestByToken(token);
 
@@ -57,8 +98,14 @@ router.post("/complete", async (req, res) => {
     return;
   }
 
+  const { basicSum, recitalSum, total } = computeGradeTotal(musicData);
+
+  console.log(
+    `[grade.routes] discordId=${gradeRequest.discordId} basicSum=${basicSum} recitalSum=${recitalSum} total=${total}`,
+  );
+
   const newNickname = env.VERIFIED_NICKNAME_FORMAT.replace("{current}", user.baseNickname)
-    .replace("{그레이드}", String(gradeSum))
+    .replace("{그레이드}", String(total))
     .slice(0, 32);
 
   try {
@@ -67,17 +114,16 @@ router.post("/complete", async (req, res) => {
     await member?.setNickname(newNickname);
   } catch (err) {
     console.error("[grade.routes] 닉네임 변경 실패:", err);
-    // 닉네임 변경 실패해도 데이터 자체는 완료 처리 (재시도 루프 방지)
   }
 
   await completeGradeUpdateRequest(gradeRequest.id);
 
   await prisma.user.update({
     where: { discordId: gradeRequest.discordId },
-    data: { currentGrade: gradeSum, lastGradeUpdateAt: new Date() },
+    data: { currentGrade: total, lastGradeUpdateAt: new Date() },
   });
 
-  res.json({ success: true, nickname: newNickname });
+  res.json({ success: true, nickname: newNickname, gradeTotal: total, basicSum, recitalSum });
 });
 
 export { router as gradeRouter };

@@ -15,7 +15,7 @@ export function startWebServer(port: number) {
   });
 
   // JSON body parsing
-  app.use(express.json());
+  app.use(express.json({ limit: "5mb" }));
 
   // Set view engine and views directory
   app.set("view engine", "ejs");
