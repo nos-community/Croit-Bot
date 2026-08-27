@@ -34,7 +34,7 @@ const envSchema = z.object({
   // Optional: role ID to assign after verification
   VERIFIED_ROLE_ID: discordSnowflake("VERIFIED_ROLE_ID").optional(),
   // Optional: nickname format applied after verification. Use '{current}' to include current display name.
-  VERIFIED_NICKNAME_FORMAT: z.string().min(1).default("{current} | Grd.{그레이드}"),
+  VERIFIED_NICKNAME_FORMAT: z.string().min(1).default("{current} | Grd.{basicGrade}"),
 
   PORT: z.coerce.number().int().positive().default(3000),
 

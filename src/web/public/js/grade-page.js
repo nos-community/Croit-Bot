@@ -87,12 +87,12 @@ document.addEventListener("DOMContentLoaded", () => {
         setStatus("그레이드를 계산하는 중입니다...");
 
         void completeGradeUpdate(result.musicData)
-          .then((data) => {
-            console.log("[Croit] 서버 갱신 완료:", data.nickname, data.gradeTotal);
+            .then((data) => {
+              console.log("[Croit] 서버 갱신 완료:", data.nickname, data.gradeBasic);
 
-            setStatus(`닉네임이 "${data.nickname}"(으)로 갱신되었습니다. 이 창을 닫으셔도 됩니다.`, "success");
-            checkButton.textContent = "갱신 완료";
-          })
+              setStatus(`닉네임이 "${data.nickname}"(으)로 갱신되었습니다. 이 창을 닫으셔도 됩니다.`, "success");
+              checkButton.textContent = "갱신 완료";
+            })
           .catch((error) => {
             console.error("[Croit] 서버 갱신 처리 오류:", error);
 

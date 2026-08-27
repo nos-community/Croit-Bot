@@ -89,12 +89,10 @@ router.post("/complete", async (req, res) => {
   });
 
   if (!user?.baseNickname) {
-    res
-      .status(400)
-      .json({
-        success: false,
-        message: "인증 정보가 올바르지 않습니다. /auth를 먼저 진행해주세요.",
-      });
+    res.status(400).json({
+      success: false,
+      message: "인증 정보가 올바르지 않습니다. /auth를 먼저 진행해주세요.",
+    });
     return;
   }
 
@@ -105,7 +103,7 @@ router.post("/complete", async (req, res) => {
   );
 
   const newNickname = env.VERIFIED_NICKNAME_FORMAT.replace("{current}", user.baseNickname)
-    .replace("{그레이드}", String(total))
+    .replace("{basicGrade}", String(basicSum))
     .slice(0, 32);
 
   try {
@@ -120,10 +118,20 @@ router.post("/complete", async (req, res) => {
 
   await prisma.user.update({
     where: { discordId: gradeRequest.discordId },
-    data: { currentGrade: total, lastGradeUpdateAt: new Date() },
+    data: {
+      gradeBasic: basicSum,
+      gradeRecital: recitalSum,
+      lastGradeUpdateAt: new Date(),
+    },
   });
 
-  res.json({ success: true, nickname: newNickname, gradeTotal: total, basicSum, recitalSum });
+  res.json({
+    success: true,
+    nickname: newNickname,
+    gradeBasic: basicSum,
+    gradeRecital: recitalSum,
+    gradeTotal: total,
+  });
 });
 
 export { router as gradeRouter };

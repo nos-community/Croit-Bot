@@ -10,8 +10,6 @@ export const updateCommand = {
   async execute(interaction: ChatInputCommandInteraction) {
     const discordId = interaction.user.id;
 
-    // client.ts에서 이미 deferReply가 수행되었으므로 별도의 deferReply 호출 없이 진행합니다.
-
     try {
       const req = await createGradeUpdateRequest(discordId);
       const updateUrl = `${env.PUBLIC_BASE_URL}/update/${req.token}`;

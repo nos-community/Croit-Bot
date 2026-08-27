@@ -5,7 +5,6 @@ import { pingCommand } from "./commands/ping.command.js";
 import { authCommand } from "./commands/auth.command.js";
 import { updateCommand } from "./commands/update.command.js";
 
-// const commands = [pingCommand.toJSON()];
 const commands = [
   pingCommand.data.toJSON(),
   authCommand.data.toJSON(),
