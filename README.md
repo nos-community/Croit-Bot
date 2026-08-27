@@ -41,7 +41,7 @@ npx prisma generate
 ```
 npx prisma migrate reset
 ```
-- **마이그레이션 이력 무시하고 최신 스키마 강제 동기화 (오류 해결용)** :
+- **최신 스키마 강제 동기화 (오류 해결용 & 업데이트용)** :
 ```
 npx prisma db push
 npx prisma generate
