@@ -8,14 +8,38 @@
 </head>
 <body>
   <main class="container">
-    <h1>Grade 자동 업데이트</h1>
-    <p class="description">이 창을 닫지 마세요. 자동으로 곡 점수 합산을 시도합니다.</p>
-    <div id="status" class="status">상태: 데이터 수집 중...</div>
+    <h1>Croit Grade 업데이트</h1>
+
+    <p class="description">
+      최근 플레이한 상위 50곡의 그레이드를 합산하여
+      닉네임에 반영합니다.
+    </p>
+
+    <div class="step">
+      <strong>① e-amusement에 로그인되어 있는지 확인해주세요.</strong>
+    </div>
+
+    
+      class="link-button primary"
+      href="https://p.eagate.573.jp/gate/p/home/"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      e-amusement 열기
+    </a>
+
+    <div class="step" style="margin-top: 24px;">
+      로그인 상태를 확인했다면 아래 버튼을 눌러주세요.
+    </div>
+
+    <button id="check-button" class="secondary" type="button">그레이드 갱신하기</button>
+
+    <div id="status" class="status">상태: 그레이드를 갱신할 준비가 되었습니다.</div>
   </main>
 
   <script>
     const TOKEN = <%- JSON.stringify(token) %>;
-    const EXTENSION_ID = <%- JSON.stringify(process.env.CROIT_EXTENSION_ID) %>;
+    const EXTENSION_ID = <%- JSON.stringify(extensionId) %>;
   </script>
   <script src="/public/js/grade-page.js" defer></script>
 </body>

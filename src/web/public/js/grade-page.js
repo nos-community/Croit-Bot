@@ -6,53 +6,103 @@ function setStatus(message, type = "") {
   statusElement.className = "status " + type;
 }
 
-async function postGrade(token, gradeSum) {
+async function completeGradeUpdate(gradeSum) {
   const response = await fetch("/api/grade/complete", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ token, gradeSum }),
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      token: TOKEN,
+      gradeSum: Number(gradeSum),
+    }),
   });
 
-  return response.json();
+  const data = await response.json();
+
+  if (!response.ok || !data.success) {
+    throw new Error(data.message ?? "그레이드 갱신 처리에 실패했습니다.");
+  }
+
+  return data;
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  const status = document.getElementById("status");
-  setStatus("확장으로부터 곡 그레이드를 요청합니다...");
+  const checkButton = document.getElementById("check-button");
 
-  if (!window.chrome || !chrome.runtime) {
-    setStatus("Extension API를 사용할 수 없습니다.", "error");
-    return;
-  }
+  if (!checkButton) return;
 
-  chrome.runtime.sendMessage(
-    EXTENSION_ID,
-    { type: "GET_NOSTALGIA_SONG_GRADES" },
-    async (result) => {
-      console.log("Extension responded:", result);
+  checkButton.addEventListener("click", () => {
+    console.log("[Croit] 그레이드 갱신 버튼을 눌렀습니다.");
+    console.log("[Croit] Extension ID:", EXTENSION_ID);
 
-      if (chrome.runtime.lastError) {
-        setStatus("확장과 통신할 수 없습니다.", "error");
-        return;
-      }
+    if (!EXTENSION_ID) {
+      setStatus("Croit 인증 Extension ID가 설정되지 않았습니다.", "error");
+      return;
+    }
 
-      if (!result || !result.success) {
-        setStatus(result?.message ?? "곡 그레이드 수집에 실패했습니다.", "error");
-        return;
-      }
+    if (!window.chrome || !chrome.runtime) {
+      setStatus("Chrome Extension API를 사용할 수 없습니다.", "error");
+      console.error("[Croit] chrome.runtime을 사용할 수 없습니다.");
+      return;
+    }
 
-      setStatus("서버에 그레이드를 전송하는 중입니다...");
+    checkButton.disabled = true;
+    setStatus("e-amusement 곡 데이터를 불러오는 중입니다...");
 
-      try {
-        const res = await postGrade(TOKEN, result.gradeSum);
-        if (res?.success) {
-          setStatus("업데이트가 완료되었습니다.", "success");
-        } else {
-          setStatus(res?.message ?? "업데이트 실패", "error");
+    console.log("[Croit] Extension에 그레이드 조회 요청을 보냅니다.");
+
+    chrome.runtime.sendMessage(
+      EXTENSION_ID,
+      {
+        type: "GET_NOSTALGIA_SONG_GRADES",
+      },
+      (result) => {
+        console.log("[Croit] Extension 응답:", result);
+
+        if (chrome.runtime.lastError) {
+          console.error("[Croit] Extension 통신 오류:", chrome.runtime.lastError.message);
+          setStatus(
+            "Croit 인증 Extension과 연결할 수 없습니다. Extension이 설치되어 있고 활성화되어 있는지 확인해주세요.",
+            "error",
+          );
+
+          checkButton.disabled = false;
+          return;
         }
-      } catch (e) {
-        setStatus("서버 전송 중 오류가 발생했습니다.", "error");
-      }
-    },
-  );
+
+        if (!result) {
+          setStatus("Extension으로부터 응답을 받지 못했습니다.", "error");
+          checkButton.disabled = false;
+          return;
+        }
+
+        if (!result.success || typeof result.gradeSum !== "number") {
+          setStatus(result.message ?? "e-amusement에 로그인되어 있지 않거나 데이터를 가져오지 못했습니다.", "error");
+          checkButton.disabled = false;
+          return;
+        }
+
+        console.log("[Croit] 그레이드 합산 성공:", result.gradeSum);
+
+        void completeGradeUpdate(result.gradeSum)
+          .then((data) => {
+            console.log("[Croit] 서버 갱신 완료:", data.nickname);
+
+            setStatus(`닉네임이 "${data.nickname}"(으)로 갱신되었습니다. 이 창을 닫으셔도 됩니다.`, "success");
+            checkButton.textContent = "갱신 완료";
+          })
+          .catch((error) => {
+            console.error("[Croit] 서버 갱신 처리 오류:", error);
+
+            setStatus(
+              "그레이드 정보를 Croit에 반영하지 못했습니다. 잠시 후 다시 시도해주세요.",
+              "error",
+            );
+
+            checkButton.disabled = false;
+          });
+      },
+    );
+  });
 });
