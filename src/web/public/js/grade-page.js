@@ -1,3 +1,8 @@
+const urlParams = new URLSearchParams(window.location.search);
+const queryExtId = urlParams.get("ext_id");
+
+const EXTENSION_ID = queryExtId || "기본_개발자_EXTENSION_ID";
+
 function setStatus(message, type = "") {
   const statusElement = document.getElementById("status");
   if (!statusElement) return;
@@ -34,10 +39,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   checkButton.addEventListener("click", () => {
     console.log("[Croit] 그레이드 갱신 버튼을 눌렀습니다.");
-    console.log("[Croit] Extension ID:", EXTENSION_ID);
+    console.log("[Croit] 사용할 Extension ID:", EXTENSION_ID);
 
-    if (!EXTENSION_ID) {
-      setStatus("Croit 인증 Extension ID가 설정되지 않았습니다.", "error");
+    if (!EXTENSION_ID || EXTENSION_ID === "기본_개발자_EXTENSION_ID") {
+      setStatus("Croit 인증 Extension ID가 올바르게 설정되지 않았습니다.", "error");
       return;
     }
 
@@ -49,8 +54,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     checkButton.disabled = true;
     setStatus("e-amusement 곡 데이터를 불러오는 중입니다...");
-
-    console.log("[Croit] Extension에 그레이드 조회 요청을 보냅니다.");
 
     console.log("[Croit] Extension에 그레이드 조회 요청을 보냅니다.");
 
