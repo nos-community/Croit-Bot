@@ -14,7 +14,6 @@ const router = Router();
 const completeAuthSchema = z.object({
   token: z.string().min(1, "인증 토큰이 필요합니다."),
   snsid: z.string().min(1, "e-amusement 사용자 식별자가 필요합니다."),
-  // `sessionCookie`는 확장에서 전송되지 않을 수 있으므로 선택 항목으로 둡니다.
   sessionCookie: z.string().optional(),
 });
 
@@ -80,7 +79,6 @@ router.post("/complete", async (req, res) => {
       return;
     }
 
-    // Fetch guild member early to capture baseNickname for DB (avoid nickname stacking)
     let baseNicknameForDb: string | null = null;
     try {
       const guild = await discordClient.guilds.fetch(env.DISCORD_GUILD_ID);
@@ -92,15 +90,20 @@ router.post("/complete", async (req, res) => {
 
     const sessionToken = createAuthSessionToken();
 
+    const updateData: any = {
+      eamusementId: snsid,
+    };
+
+    if (baseNicknameForDb || (user as any).baseNickname) {
+      updateData.baseNickname = (user as any).baseNickname ?? baseNicknameForDb;
+    }
+
     await prisma.$transaction(async (tx: any) => {
       await tx.user.update({
         where: {
           id: user.id,
         },
-        data: {
-          eamusementId: snsid,
-          baseNickname: (user as any).baseNickname ?? baseNicknameForDb,
-        },
+        data: updateData,
       });
 
       await tx.authRequest.update({
@@ -123,7 +126,6 @@ router.post("/complete", async (req, res) => {
       });
     });
 
-    // 역할 부여 시도: 실패해도 인증 자체는 성공으로 처리합니다.
     try {
       if (env.VERIFIED_ROLE_ID) {
         const guild = await discordClient.guilds.fetch(env.DISCORD_GUILD_ID);
@@ -151,7 +153,6 @@ router.post("/complete", async (req, res) => {
           console.warn("봇 사용자 정보가 준비되지 않아 닉네임 변경을 건너뜁니다.");
         } else {
           const botMember = await guild.members.fetch(botId);
-
           const canManageNicknames = botMember.permissions.has(PermissionFlagsBits.ManageNicknames);
 
           if (!canManageNicknames) {
@@ -159,12 +160,10 @@ router.post("/complete", async (req, res) => {
           } else if (!member.manageable) {
             console.warn("대상 멤버를 관리할 수 없어 닉네임 변경을 건너뜁니다.");
           } else {
-            // Use baseNickname from DB (if present) to avoid stacking
             const baseForUse =
               (user as any).baseNickname ?? baseNicknameForDb ?? member.displayName;
 
             const newNick = formatNickname(baseForUse, "🌱");
-
             await member.setNickname(newNick);
 
             console.log(
@@ -184,8 +183,11 @@ router.post("/complete", async (req, res) => {
       message: "e-amusement 인증이 완료되었습니다.",
       sessionToken,
     });
-  } catch (error: unknown) {
-    console.error("e-amusement 인증 완료 처리 중 오류가 발생했습니다.", error);
+  } catch (error: any) {
+    console.error("e-amusement 인증 완료 처리 중 오류가 발생했습니다.");
+    console.error("상세 에러 메시지:", error?.message);
+    console.error("Prisma 에러 코드:", error?.code);
+    console.error("Prisma 상세 정보:", JSON.stringify(error, null, 2));
 
     res.status(500).json({
       success: false,
