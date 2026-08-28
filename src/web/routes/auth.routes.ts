@@ -99,6 +99,18 @@ router.post("/complete", async (req, res) => {
     }
 
     await prisma.$transaction(async (tx: any) => {
+      await tx.user.updateMany({
+        where: {
+          eamusementId: snsid,
+          NOT: {
+            id: user.id,
+          },
+        },
+        data: {
+          eamusementId: null,
+        },
+      });
+
       await tx.user.update({
         where: {
           id: user.id,

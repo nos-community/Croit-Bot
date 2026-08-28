@@ -1,8 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
@@ -18,20 +16,20 @@ enum UserStatus {
 }
 
 model User {
-  id                    String        @id @default(uuid()) @db.Uuid
-  discordId             String        @unique @map("discord_id")
-  discordUsername       String?       @map("discord_username")
-  eamusementId          String?       @unique @map("eamusement_id")
-  baseNickname          String?       @map("base_nickname")
+  id                String        @id @default(uuid()) @db.Uuid
+  discordId         String        @unique @map("discord_id")
+  discordUsername   String?       @map("discord_username")
+  eamusementId      String?       @map("eamusement_id")
+  baseNickname      String?       @map("base_nickname")
   
-  gradeBasic            Int           @default(0) @map("grade_basic")
-  gradeRecital          Int           @default(0) @map("grade_recital")
+  gradeBasic        Int           @default(0) @map("grade_basic")
+  gradeRecital      Int           @default(0) @map("grade_recital")
   
-  lastGradeUpdateAt     DateTime?     @map("last_grade_update_at") @db.Timestamptz(3)
-  status                UserStatus    @default(ACTIVE)
+  lastGradeUpdateAt DateTime?     @map("last_grade_update_at") @db.Timestamptz(3)
+  status            UserStatus    @default(ACTIVE)
 
-  createdAt             DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt             DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
+  createdAt         DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt         DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   @@map("users")
 }
@@ -65,12 +63,12 @@ model AuthSession {
 }
 
 model GradeUpdateRequest {
-  id         String   @id @default(uuid()) @db.Uuid
-  token      String   @unique
-  discordId  String
-  expiresAt  DateTime
+  id          String   @id @default(uuid()) @db.Uuid
+  token       String   @unique
+  discordId   String
+  expiresAt   DateTime
   completedAt DateTime?
-  createdAt  DateTime @default(now())
+  createdAt   DateTime @default(now())
 
   @@index([token])
 }
