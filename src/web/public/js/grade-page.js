@@ -1,7 +1,9 @@
 const urlParams = new URLSearchParams(window.location.search);
 const queryExtId = urlParams.get("ext_id");
 
-const EXTENSION_ID = queryExtId || "기본_개발자_EXTENSION_ID";
+if (queryExtId) {
+  EXTENSION_ID = queryExtId;
+}
 
 function setStatus(message, type = "") {
   const statusElement = document.getElementById("status");

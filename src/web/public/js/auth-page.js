@@ -1,7 +1,9 @@
 const urlParams = new URLSearchParams(window.location.search);
 const queryExtId = urlParams.get("ext_id");
 
-const EXTENSION_ID = queryExtId || "기본_개발자_EXTENSION_ID";
+if (queryExtId) {
+  EXTENSION_ID = queryExtId;
+}
 
 function setStatus(message, type = "") {
   const statusElement = document.getElementById("status");
@@ -41,7 +43,7 @@ document.addEventListener("DOMContentLoaded", () => {
     console.log("[Croit] 로그인 상태 확인 버튼을 눌렀습니다.");
     console.log("[Croit] 사용할 Extension ID:", EXTENSION_ID);
 
-    if (!EXTENSION_ID || EXTENSION_ID === "기본_개발자_EXTENSION_ID") {
+    if (!EXTENSION_ID) {
       setStatus("Croit 인증 Extension ID가 올바르게 설정되지 않았습니다.", "error");
       return;
     }
